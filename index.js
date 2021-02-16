@@ -28,6 +28,7 @@ server.use(bodyParser.urlencoded({
 }));
 
 server.get('/', (req, res) => {
+  console.log("hey");
   res.send('G2-8 TicTacToe Server');
 })
 
