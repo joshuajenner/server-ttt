@@ -70,5 +70,5 @@ server.post('/signup', async (req, res) => {
 
 // http.listen(port, hostname, () => {
 http.listen(port, () => {
-  console.log(`Server is listening at http://${hostname}:${port}`)
+  console.log(`Server is listening`)
 })
