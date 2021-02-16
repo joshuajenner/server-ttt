@@ -16,8 +16,8 @@ const serviceAccount = require('./tictactoe-g2-8-fc37382609ff.json');
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-const hostname = '127.0.0.1';
-const port = 3000;
+// const hostname = '127.0.0.1';
+const port = process.env.PORT || 3000;
 
 
 
@@ -67,6 +67,7 @@ server.post('/signup', async (req, res) => {
 })
 
 
-http.listen(process.env.PORT || port, hostname, () => {
+// http.listen(port, hostname, () => {
+http.listen(port, () => {
   console.log(`Server is listening at http://${hostname}:${port}`)
 })
