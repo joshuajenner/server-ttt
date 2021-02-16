@@ -1,5 +1,11 @@
-const express = require('express')
-const server = express()
+// const express = require('express')
+// const server = express()
+// const http = require('http').Server(express)
+// const io = require('socket.io')(http);
+
+const server = require('express')();
+const http = require('http').Server(server);
+const io = require('socket.io')(http);
 var cors = require('cors')
 var bodyParser = require('body-parser')
 
@@ -17,51 +23,50 @@ const port = 3000;
 
 server.use(cors());
 server.use(bodyParser.json());
-server.use(bodyParser.urlencoded({ 
+server.use(bodyParser.urlencoded({
   extended: true
-})); 
+}));
 
 server.get('/', (req, res) => {
-  res.send('Hello World!');
-  console.log("home")
+  res.send('G2-8 TicTacToe Server');
 })
 
 server.post('/login', async (req, res) => {
   if (req.body.loginUser != undefined && req.body.loginPass != undefined) {
     const snapshot = await db.collection('users').where('username', '==', req.body.loginUser).get();
     if (snapshot.empty) {
-        res.send({message: "Username not found."})
+      res.send({ message: "Username not found." })
     } else {
-        snapshot.forEach(doc => {
-            if (doc.data().password == req.body.loginPass) {
-                res.send({message: "success"});
-            } else {
-                res.send({message: "Password is incorrect."})
-            }
-        });
+      snapshot.forEach(doc => {
+        if (doc.data().password == req.body.loginPass) {
+          res.send({ message: "success" });
+        } else {
+          res.send({ message: "Password is incorrect." })
+        }
+      });
     }
   } else {
-    res.send({message: "Please fill in all fields."});
+    res.send({ message: "Please fill in all fields." });
   }
-    res.end()
+  res.end()
 })
 
 server.post('/signup', async (req, res) => {
   if (req.body.signUser != undefined && req.body.signPass != undefined) {
     const snapshot = await db.collection('users').where('username', '==', req.body.signUser).get();
     if (snapshot.empty) {
-        db.collection('users').add({ username: req.body.signUser, password: req.body.signPass});
-        res.send({message: "Signup successful! Please click below to login"});
+      db.collection('users').add({ username: req.body.signUser, password: req.body.signPass });
+      res.send({ message: "Signup successful! Please click below to login" });
     } else {
-        res.send({message: 'Error! Username is already taken.'});
+      res.send({ message: 'Error! Username is already taken.' });
     }
   } else {
-    res.send({message: "Please fill in all fields."});
+    res.send({ message: "Please fill in all fields." });
   }
   res.end()
 })
 
 
-server.listen(port, hostname, () => {
-  console.log(`Example app listening at http://${hostname}:${port}`)
+http.listen(port, hostname, () => {
+  console.log(`Server is listening at http://${hostname}:${port}`)
 })
