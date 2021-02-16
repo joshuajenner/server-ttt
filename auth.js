@@ -8,7 +8,6 @@ const db = admin.firestore();
 
 async function login(givenUser, givenPass) {
     const snapshot = await db.collection('users').where('username', '==', givenUser).get();
-
     if (snapshot.empty) {
         return false;
     } else {
