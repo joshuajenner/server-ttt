@@ -31,7 +31,6 @@ let gameRooms = [];
 
 
 
-
 server.use(cors());
 server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({
@@ -78,17 +77,31 @@ server.post('/signup', async (req, res) => {
   res.end()
 })
 
+server.post('/getrooms', async (req, res) => {
+  res.send(gameRooms);
+  res.end;
+})
+
+server.post('/getboard', async (req, res) => {
+  for (b in gameRooms) {
+    if (!gameRooms[b][0].localeCompare(req.body.room)) {
+      res.send(gameRooms[b][2]);
+    }
+  }
+  res.end;
+})
+
 function joinGameRoom(room, id) {
   let roomFound = false;
   for (r in gameRooms) {
-    if (!r.localeCompare(room)) {
+    if (r.localeCompare(room)) {
       roomFound = true
+      gameRooms[r][1].push(id);
     }
   }
-  if(!roomFound) {
-    gameRooms.push([room, [id]])
+  if (!roomFound) {
+    gameRooms.push([room, [id], [0, 0, 0, 0, 0, 0, 0, 0, 0]])
   }
-  console.log(gameRooms);
 }
 
 function leaveGameRoom(room, id) {
@@ -106,7 +119,7 @@ function leaveGameRoom(room, id) {
       if (roomEmpty) {
         gameRooms.splice(r);
       }
-      
+
 
     }
   }
@@ -115,26 +128,23 @@ function leaveGameRoom(room, id) {
 io.on("connection", (socket) => {
   socket.on("disconnecting", (reason) => {
     socket.rooms.forEach(r => {
-      console.log(r)
       leaveGameRoom(r, socket.id);
     });
-    console.log(gameRooms);
   });
 
- socket.on("joinroom", (arg) => {
-   socket.join(arg);
-   joinGameRoom(arg, socket.id);
- });
+  socket.on("joinroom", (arg) => {
+    socket.join(arg);
+    joinGameRoom(arg, socket.id);
+  });
 
- socket.on("leaveroom", (arg) => {
-  leaveGameRoom(arg, socket.id);
- });
+  socket.on("leaveroom", (arg) => {
+    leaveGameRoom(arg, socket.id);
+  });
 
- socket.on("listrooms", () => {
+  socket.on("listrooms", () => {
+    socket.emit("updaterooms", gameRooms);
+  })
 
-  // socket.emit("updaterooms", map_to_object(io.sockets.adapter.rooms));
-  socket.emit("updaterooms", gameRooms);
- })
 });
 
 
