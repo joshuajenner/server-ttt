@@ -38,7 +38,6 @@ server.use(bodyParser.urlencoded({
 }));
 
 server.get('/', (req, res) => {
-  console.log("hey");
   res.send('G2-8 TicTacToe Server');
 })
 
@@ -79,39 +78,79 @@ server.post('/signup', async (req, res) => {
 
 server.post('/getrooms', async (req, res) => {
   res.send(gameRooms);
+  console.log(gameRooms);
   res.end;
 })
 
-server.post('/getboard', async (req, res) => {
-  for (b in gameRooms) {
-    if (!gameRooms[b][0].localeCompare(req.body.room)) {
-      res.send(gameRooms[b][2]);
+server.post('/initboard', async (req, res) => {
+  for (r in gameRooms) {
+    if (!gameRooms[r].roomcode.localeCompare(req.body.room)) {
+      res.send(gameRooms[r].board);
     }
   }
   res.end;
 })
 
-function joinGameRoom(room, id) {
+function joinGameRoom(room, passedID, passedName) {
+  let roleTemp;
+  let symbolTemp;
   let roomFound = false;
   for (r in gameRooms) {
-    if (r.localeCompare(room)) {
-      roomFound = true
-      gameRooms[r][1].push(id);
+    if(!gameRooms[r].roomcode.localeCompare(room)) {
+      console.log("Room Found")
+      roomFound = true;
+      if (gameRooms[r].users.length === 0) {
+        roleTemp = "player";
+        symbolTemp = 1;
+      } else if (gameRooms[r].users.length === 1) {
+        roleTemp = "player"
+        symbolTemp = 2;
+      } else {
+        roleTemp = "viewer"
+        symbolTemp = 0
+      }
+      gameRooms[r].users.push({
+        name: passedName,
+        id: passedID,
+        role: roleTemp,
+        symbol: symbolTemp
+      })
     }
   }
   if (!roomFound) {
-    gameRooms.push([room, [id], [0, 0, 0, 0, 0, 0, 0, 0, 0]])
+    gameRooms.push({
+        roomcode: room,
+        users: [{
+          name: passedName,
+          id: passedID,
+          role: "player",
+          symbol: 1
+        }],
+        turn: passedName,
+        board: [0,0,0,0,0,0,0,0,0]
+    });
   }
+  // let roomFound = false;
+  // for (r in gameRooms) {
+  //   if (r.localeCompare(room)) {
+  //     roomFound = true
+  //     gameRooms[r][1].push(id);
+  //   }
+  // }
+  // if (!roomFound) {
+  //   gameRooms.push([room, [id], [0, 0, 0, 0, 0, 0, 0, 0, 0]])
+  // }
 }
 
 function leaveGameRoom(room, id) {
   let roomEmpty = false
   for (r in gameRooms) {
-    if (gameRooms[r][0].localeCompare(room)) {
-      for (i in gameRooms[r][1]) {
-        if (!gameRooms[r][1][i].localeCompare(id)) {
-          gameRooms[r][1].splice(i);
-          if (gameRooms[r][1].length === 0) {
+    if(!gameRooms[r].roomcode.localeCompare(room)) {
+      console.log("yup")
+      for (u in gameRooms[r].users) {
+        if (!gameRooms[r].users[u].id.localeCompare(id)) {
+          gameRooms[r].users.splice(u);
+          if (gameRooms[r].users.length === 0) {
             roomEmpty = true
           }
         }
@@ -119,10 +158,26 @@ function leaveGameRoom(room, id) {
       if (roomEmpty) {
         gameRooms.splice(r);
       }
-
-
     }
   }
+
+  // for (r in gameRooms) {
+  //   if (gameRooms[r][0].localeCompare(room)) {
+  //     for (i in gameRooms[r][1]) {
+  //       if (!gameRooms[r][1][i].localeCompare(id)) {
+  //         gameRooms[r][1].splice(i);
+  //         if (gameRooms[r][1].length === 0) {
+  //           roomEmpty = true
+  //         }
+  //       }
+  //     }
+  //     if (roomEmpty) {
+  //       gameRooms.splice(r);
+  //     }
+
+
+  //   }
+  // }
 }
 
 io.on("connection", (socket) => {
@@ -133,21 +188,36 @@ io.on("connection", (socket) => {
   });
 
   socket.on("joinroom", (arg) => {
-    socket.join(arg);
-    joinGameRoom(arg, socket.id);
+    // arg 0 = room, 1 = username
+    socket.join(arg[0]);
+    joinGameRoom(arg[0], socket.id, arg[1]);
+    for (r in gameRooms) {
+      if (!gameRooms[r].roomcode.localeCompare(arg[0])) {
+        io.to(arg[0]).emit('roominfo', gameRooms[r].users);
+      }
+    }
+
   });
 
   socket.on("leaveroom", (arg) => {
     leaveGameRoom(arg, socket.id);
   });
 
-  socket.on("listrooms", () => {
-    socket.emit("updaterooms", gameRooms);
-  })
-
+  socket.on("sendmove", (arg) => {
+    // arg 0 = room, 1 = tile, 2 = move
+    for (b in gameRooms) {
+      if (!gameRooms[b].roomcode.localeCompare(arg[0])) {
+        for (u in gameRooms[b].users) {
+          if (!gameRooms[b].users[u].name.localeCompare(arg[2])) {
+            gameRooms[b].board[arg[1]] = gameRooms[b].users[u].symbol
+          }
+        }
+        io.to(arg[0]).emit('boardchanged', [gameRooms[b].board, gameRooms[b].turn]);
+      }
+    }
+    
+  });
 });
-
-
 
 // http.listen(port, hostname, () => {
 http.listen(port, hostname, () => {
