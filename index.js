@@ -28,6 +28,7 @@ const port = process.env.PORT || 3000;
 
 
 let gameRooms = [];
+let win = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
 
 
 
@@ -96,7 +97,7 @@ function joinGameRoom(room, passedID, passedName) {
   let symbolTemp;
   let roomFound = false;
   for (r in gameRooms) {
-    if(!gameRooms[r].roomcode.localeCompare(room)) {
+    if (!gameRooms[r].roomcode.localeCompare(room)) {
       console.log("Room Found")
       roomFound = true;
       if (gameRooms[r].users.length === 0) {
@@ -119,15 +120,15 @@ function joinGameRoom(room, passedID, passedName) {
   }
   if (!roomFound) {
     gameRooms.push({
-        roomcode: room,
-        users: [{
-          name: passedName,
-          id: passedID,
-          role: "player",
-          symbol: 1
-        }],
-        turn: passedName,
-        board: [0,0,0,0,0,0,0,0,0]
+      roomcode: room,
+      users: [{
+        name: passedName,
+        id: passedID,
+        role: "player",
+        symbol: 1
+      }],
+      turn: passedName,
+      board: [0, 0, 0, 0, 0, 0, 0, 0, 0]
     });
   }
   // let roomFound = false;
@@ -145,7 +146,7 @@ function joinGameRoom(room, passedID, passedName) {
 function leaveGameRoom(room, id) {
   let roomEmpty = false
   for (r in gameRooms) {
-    if(!gameRooms[r].roomcode.localeCompare(room)) {
+    if (!gameRooms[r].roomcode.localeCompare(room)) {
       console.log("yup")
       for (u in gameRooms[r].users) {
         if (!gameRooms[r].users[u].id.localeCompare(id)) {
@@ -180,6 +181,47 @@ function leaveGameRoom(room, id) {
   // }
 }
 
+
+function checkWin(board) {
+  let indexes = [];
+  let symbols = [1, 2];
+
+  for (s in symbols) {
+    for (t in board) {
+      if (board[t] === symbols[s]) {
+        indexes.push(t);
+      }
+    }
+  }
+
+  if (board[0] === 1 && board[1] === 1 && board[2] === 1) {
+    return 1;
+  }
+  if ((board[3] && board[4] && board[5]) === 1) {
+    return 2;
+  }
+  if ((board[6] && board[7] && board[8]) === 1) {
+    return 3;
+  }
+  if ((board[0] && board[3] && board[6]) === 1) {
+    return 4;
+  }
+  if ((board[1] && board[4] && board[7]) === 1) {
+    return 5;
+  }
+  if ((board[2] && board[5] && board[8]) === 1) {
+    return 6;
+  }
+  if ((board[0] && board[4] && board[8]) === 1) {
+    return 7;
+  }
+  if ((board[2] && board[4] && board[6]) === 1) {
+    return 8;
+  }
+
+}
+
+
 io.on("connection", (socket) => {
   socket.on("disconnecting", (reason) => {
     socket.rooms.forEach(r => {
@@ -193,7 +235,7 @@ io.on("connection", (socket) => {
     joinGameRoom(arg[0], socket.id, arg[1]);
     for (r in gameRooms) {
       if (!gameRooms[r].roomcode.localeCompare(arg[0])) {
-        io.to(arg[0]).emit('roominfo', gameRooms[r].users);
+        io.to(arg[0]).emit('roominfo', [gameRooms[r].users, gameRooms[r].turn]);
       }
     }
 
@@ -204,18 +246,25 @@ io.on("connection", (socket) => {
   });
 
   socket.on("sendmove", (arg) => {
-    // arg 0 = room, 1 = tile, 2 = move
+    // arg 0 = room, 1 = tile, 2 = user
     for (b in gameRooms) {
       if (!gameRooms[b].roomcode.localeCompare(arg[0])) {
         for (u in gameRooms[b].users) {
           if (!gameRooms[b].users[u].name.localeCompare(arg[2])) {
             gameRooms[b].board[arg[1]] = gameRooms[b].users[u].symbol
           }
+          if (!gameRooms[b].users[u].role.localeCompare('player')) {
+            if (gameRooms[b].users[u].name.localeCompare(gameRooms[b].turn) && gameRooms[b].users[u].name.localeCompare(arg[2])) {
+              gameRooms[b].turn = gameRooms[b].users[u].name;
+            }
+          }
         }
         io.to(arg[0]).emit('boardchanged', [gameRooms[b].board, gameRooms[b].turn]);
+        console.log(checkWin(gameRooms[b].board));
+
       }
     }
-    
+
   });
 });
 
