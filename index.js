@@ -28,7 +28,8 @@ const port = process.env.PORT || 3000;
 
 
 let gameRooms = [];
-let win = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+let winConditions = ['012', '345', '678', '036', '147', '258', '048', '246']
+// let winConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
 
 
 
@@ -183,41 +184,51 @@ function leaveGameRoom(room, id) {
 
 
 function checkWin(board) {
-  let indexes = [];
+  let indexes = "";
   let symbols = [1, 2];
 
   for (s in symbols) {
+    indexes = '';
     for (t in board) {
       if (board[t] === symbols[s]) {
-        indexes.push(t);
+        indexes += t;
       }
     }
+    // console.log(indexes);
+    for (win in winConditions) {
+        // console.log(winConditions[win][w], " ,", indexes[w])
+        if (indexes.includes(winConditions[win])) {
+          return true
+        }
+        
+    }
   }
-
-  if (board[0] === 1 && board[1] === 1 && board[2] === 1) {
-    return 1;
-  }
-  if ((board[3] && board[4] && board[5]) === 1) {
-    return 2;
-  }
-  if ((board[6] && board[7] && board[8]) === 1) {
-    return 3;
-  }
-  if ((board[0] && board[3] && board[6]) === 1) {
-    return 4;
-  }
-  if ((board[1] && board[4] && board[7]) === 1) {
-    return 5;
-  }
-  if ((board[2] && board[5] && board[8]) === 1) {
-    return 6;
-  }
-  if ((board[0] && board[4] && board[8]) === 1) {
-    return 7;
-  }
-  if ((board[2] && board[4] && board[6]) === 1) {
-    return 8;
-  }
+    return false;
+  
+  // if (board[0] === 1 && board[1] === 1 && board[2] === 1) {
+  //   return 1;
+  // }
+  // if ((board[3] && board[4] && board[5]) === 1) {
+  //   return 2;
+  // }
+  // if ((board[6] && board[7] && board[8]) === 1) {
+  //   return 3;
+  // }
+  // if ((board[0] && board[3] && board[6]) === 1) {
+  //   return 4;
+  // }
+  // if ((board[1] && board[4] && board[7]) === 1) {
+  //   return 5;
+  // }
+  // if ((board[2] && board[5] && board[8]) === 1) {
+  //   return 6;
+  // }
+  // if ((board[0] && board[4] && board[8]) === 1) {
+  //   return 7;
+  // }
+  // if ((board[2] && board[4] && board[6]) === 1) {
+  //   return 8;
+  // }
 
 }
 
