@@ -194,41 +194,14 @@ function checkWin(board) {
         indexes += t;
       }
     }
-    // console.log(indexes);
     for (win in winConditions) {
-        // console.log(winConditions[win][w], " ,", indexes[w])
-        if (indexes.includes(winConditions[win])) {
-          return true
-        }
-        
+      if (indexes.includes(winConditions[win])) {
+        return [true, winConditions[win]]
+      }
+
     }
   }
-    return false;
-  
-  // if (board[0] === 1 && board[1] === 1 && board[2] === 1) {
-  //   return 1;
-  // }
-  // if ((board[3] && board[4] && board[5]) === 1) {
-  //   return 2;
-  // }
-  // if ((board[6] && board[7] && board[8]) === 1) {
-  //   return 3;
-  // }
-  // if ((board[0] && board[3] && board[6]) === 1) {
-  //   return 4;
-  // }
-  // if ((board[1] && board[4] && board[7]) === 1) {
-  //   return 5;
-  // }
-  // if ((board[2] && board[5] && board[8]) === 1) {
-  //   return 6;
-  // }
-  // if ((board[0] && board[4] && board[8]) === 1) {
-  //   return 7;
-  // }
-  // if ((board[2] && board[4] && board[6]) === 1) {
-  //   return 8;
-  // }
+  return [false, []]
 
 }
 
@@ -271,7 +244,10 @@ io.on("connection", (socket) => {
           }
         }
         io.to(arg[0]).emit('boardchanged', [gameRooms[b].board, gameRooms[b].turn]);
-        console.log(checkWin(gameRooms[b].board));
+        let winTemp = checkWin(gameRooms[b].board)
+        if (winTemp[0]) {
+          io.to(arg[0]).emit('winner', [arg[2], winTemp[1]]);
+        }
 
       }
     }
