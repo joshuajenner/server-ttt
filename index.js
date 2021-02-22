@@ -140,6 +140,7 @@ function closeRoom(room) {
       gameRooms.splice(r);
     }
   }
+  io.emit("roomsrefreshed");
 }
 function leaveGameRoom(room, id) {
   let roomEmpty = false
@@ -158,6 +159,15 @@ function leaveGameRoom(room, id) {
       }
     }
   }
+}
+
+function isBoardFull(board) {
+  for (tile in board) {
+    if (board[tile] === 0) {
+      return false
+    }
+  }
+  return true
 }
 
 function checkWin(board) {
@@ -207,7 +217,6 @@ io.on("connection", (socket) => {
         leaveGameRoom(r, socket.id);
       }
     });
-    io.emit("roomsrefreshed");
   });
 
   socket.on("joinroom", (arg) => {
@@ -229,7 +238,6 @@ io.on("connection", (socket) => {
     } else {
       leaveGameRoom(arg, socket.id);
     }
-    io.emit("roomsrefreshed");
   });
 
   socket.on("sendmove", (arg) => {
@@ -247,12 +255,15 @@ io.on("connection", (socket) => {
           }
         }
         io.to(arg[0]).emit('boardchanged', [gameRooms[b].board, gameRooms[b].turn]);
-        let winTemp = checkWin(gameRooms[b].board)
+        if (isBoardFull(gameRooms[b].board)) {
+          io.to(arg[0]).emit('boardfull');
+          closeRoom(arg[0]);
+        }
+        let winTemp = checkWin(gameRooms[b].board);
         if (winTemp[0]) {
           io.to(arg[0]).emit('winner', [arg[2], winTemp[1]]);
           closeRoom(arg[0]);
         }
-
       }
     }
 
