@@ -9,7 +9,7 @@ const server = require('express')();
 const http = require('http').Server(server);
 const io = require('socket.io')(http, {
   cors: {
-    origin: "https://objective-jackson-bd6786.netlify.app/",
+    origin: "https://objective-jackson-bd6786.netlify.app",
     methos: ["GET", "POST"]
   }
 });
