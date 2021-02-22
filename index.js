@@ -3,11 +3,13 @@
 // const http = require('http').Server(express)
 // const io = require('socket.io')(http);
 
+
+//local url is http://localhost:5000
 const server = require('express')();
 const http = require('http').Server(server);
 const io = require('socket.io')(http, {
   cors: {
-    origin: "http://localhost:5000",
+    origin: "https://objective-jackson-bd6786.netlify.app/",
     methos: ["GET", "POST"]
   }
 });
@@ -28,8 +30,7 @@ const port = process.env.PORT || 3000;
 
 
 let gameRooms = [];
-let winConditions = ['012', '345', '678', '036', '147', '258', '048', '246']
-// let winConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]]
+let winConditions = ['012', '345', '678', '036', '147', '258', '048', '246'];
 
 
 
@@ -38,6 +39,9 @@ server.use(bodyParser.json());
 server.use(bodyParser.urlencoded({
   extended: true
 }));
+
+
+// Server Functions
 
 server.get('/', (req, res) => {
   res.send('G2-8 TicTacToe Server');
@@ -80,7 +84,6 @@ server.post('/signup', async (req, res) => {
 
 server.post('/getrooms', async (req, res) => {
   res.send(gameRooms);
-  console.log(gameRooms);
   res.end;
 })
 
@@ -93,13 +96,14 @@ server.post('/initboard', async (req, res) => {
   res.end;
 })
 
+// Internal Functions
+
 function joinGameRoom(room, passedID, passedName) {
   let roleTemp;
   let symbolTemp;
   let roomFound = false;
   for (r in gameRooms) {
     if (!gameRooms[r].roomcode.localeCompare(room)) {
-      console.log("Room Found")
       roomFound = true;
       if (gameRooms[r].users.length === 0) {
         roleTemp = "player";
@@ -132,23 +136,18 @@ function joinGameRoom(room, passedID, passedName) {
       board: [0, 0, 0, 0, 0, 0, 0, 0, 0]
     });
   }
-  // let roomFound = false;
-  // for (r in gameRooms) {
-  //   if (r.localeCompare(room)) {
-  //     roomFound = true
-  //     gameRooms[r][1].push(id);
-  //   }
-  // }
-  // if (!roomFound) {
-  //   gameRooms.push([room, [id], [0, 0, 0, 0, 0, 0, 0, 0, 0]])
-  // }
 }
-
+function closeRoom(room) {
+  for (r in gameRooms) {
+    if (!gameRooms[r].roomcode.localeCompare(room)) {
+      gameRooms.splice(r);
+    }
+  }
+}
 function leaveGameRoom(room, id) {
   let roomEmpty = false
   for (r in gameRooms) {
     if (!gameRooms[r].roomcode.localeCompare(room)) {
-      console.log("yup")
       for (u in gameRooms[r].users) {
         if (!gameRooms[r].users[u].id.localeCompare(id)) {
           gameRooms[r].users.splice(u);
@@ -162,26 +161,7 @@ function leaveGameRoom(room, id) {
       }
     }
   }
-
-  // for (r in gameRooms) {
-  //   if (gameRooms[r][0].localeCompare(room)) {
-  //     for (i in gameRooms[r][1]) {
-  //       if (!gameRooms[r][1][i].localeCompare(id)) {
-  //         gameRooms[r][1].splice(i);
-  //         if (gameRooms[r][1].length === 0) {
-  //           roomEmpty = true
-  //         }
-  //       }
-  //     }
-  //     if (roomEmpty) {
-  //       gameRooms.splice(r);
-  //     }
-
-
-  //   }
-  // }
 }
-
 
 function checkWin(board) {
   let indexes = "";
@@ -205,12 +185,32 @@ function checkWin(board) {
 
 }
 
+function isAPlayer(id) {
+  for (r in gameRooms) {
+    for (u in gameRooms[r].users) {
+      if(!gameRooms[r].users[u].id.localeCompare(id)) {
+        if (!gameRooms[r].users[u].role.localeCompare("player")) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+// Socket IO Functions
 
 io.on("connection", (socket) => {
   socket.on("disconnecting", (reason) => {
     socket.rooms.forEach(r => {
-      leaveGameRoom(r, socket.id);
+      if (isAPlayer(socket.id)) {
+        socket.to(r).emit("playerdc");
+        closeRoom(r);
+      } else {
+        leaveGameRoom(r, socket.id);
+      }
     });
+    io.emit("roomsrefreshed");
   });
 
   socket.on("joinroom", (arg) => {
@@ -222,11 +222,17 @@ io.on("connection", (socket) => {
         io.to(arg[0]).emit('roominfo', [gameRooms[r].users, gameRooms[r].turn]);
       }
     }
-
+    io.emit("roomsrefreshed");
   });
 
   socket.on("leaveroom", (arg) => {
-    leaveGameRoom(arg, socket.id);
+    if (isAPlayer(socket.id)) {
+      socket.to(arg).emit("playerdc");
+      closeRoom(arg);
+    } else {
+      leaveGameRoom(arg, socket.id);
+    }
+    io.emit("roomsrefreshed");
   });
 
   socket.on("sendmove", (arg) => {
@@ -247,6 +253,7 @@ io.on("connection", (socket) => {
         let winTemp = checkWin(gameRooms[b].board)
         if (winTemp[0]) {
           io.to(arg[0]).emit('winner', [arg[2], winTemp[1]]);
+          closeRoom(arg[0]);
         }
 
       }
@@ -255,7 +262,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// http.listen(port, hostname, () => {
 http.listen(port, hostname, () => {
   console.log(`Server is listening`)
 })
