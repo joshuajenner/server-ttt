@@ -257,6 +257,7 @@ io.on("connection", (socket) => {
         io.to(arg[0]).emit('boardchanged', [gameRooms[b].board, gameRooms[b].turn]);
         if (isBoardFull(gameRooms[b].board)) {
           io.to(arg[0]).emit('boardfull');
+          console.log(arg[0]);
           closeRoom(arg[0]);
         }
         let winTemp = checkWin(gameRooms[b].board);
