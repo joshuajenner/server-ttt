@@ -1,6 +1,6 @@
 # server-ttt
 
 
-# Install node.js
-# npm install
-# node index.js
+Install node.js
+npm install
+node index.js
