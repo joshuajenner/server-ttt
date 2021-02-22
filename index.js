@@ -23,11 +23,8 @@ const serviceAccount = require('./tictactoe-g2-8-fc37382609ff.json');
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-const hostname = '127.0.0.1';
+// const hostname = '127.0.0.1';
 const port = process.env.PORT || 3000;
-
-
-
 
 let gameRooms = [];
 let winConditions = ['012', '345', '678', '036', '147', '258', '048', '246'];
@@ -262,6 +259,6 @@ io.on("connection", (socket) => {
   });
 });
 
-http.listen(port, hostname, () => {
+http.listen(port, () => {
   console.log(`Server is listening`)
 })
