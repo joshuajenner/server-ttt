@@ -1,10 +1,5 @@
-// const express = require('express')
-// const server = express()
-// const http = require('http').Server(express)
-// const io = require('socket.io')(http);
-
-
 //local url is http://localhost:5000
+//prod url is  https://server-ttt.herokuapp.com
 const server = require('express')();
 const http = require('http').Server(server);
 const io = require('socket.io')(http, {
@@ -27,7 +22,7 @@ const db = admin.firestore();
 const port = process.env.PORT || 3000;
 
 let gameRooms = [];
-let winConditions = ['012', '345', '678', '036', '147', '258', '048', '246'];
+let winConditions = [[0, 1, 2], [3, 4, 5], [6, 7, 8], [0, 3, 6], [1, 4, 7], [2, 5, 8], [0, 4, 8], [2, 4, 6]];
 
 
 
@@ -171,31 +166,39 @@ function isBoardFull(board) {
 }
 
 function checkWin(board) {
-  let indexes = "";
+  let indexes = [];
+  let bingo = 0;
   let symbols = [1, 2];
 
   for (s in symbols) {
-    indexes = '';
+    indexes = [];
     for (t in board) {
       if (board[t] === symbols[s]) {
-        indexes += t;
+        indexes.push(t);
       }
     }
     for (win in winConditions) {
-      if (indexes.includes(winConditions[win])) {
-        return [true, winConditions[win]]
+      bingo = 0;
+      for (index in indexes) {
+        for (check in winConditions[win]) {
+          console.log(indexes[index], " - ", winConditions[win][check])
+          if (indexes[index] == winConditions[win][check]) {
+            bingo += 1;
+          }
+        }
       }
-
+      if (bingo === 3) {
+        return [true, winConditions[win]];
+      }
     }
   }
-  return [false, []]
-
+  return [false, []];
 }
 
 function isAPlayer(id) {
   for (r in gameRooms) {
     for (u in gameRooms[r].users) {
-      if(!gameRooms[r].users[u].id.localeCompare(id)) {
+      if (!gameRooms[r].users[u].id.localeCompare(id)) {
         if (!gameRooms[r].users[u].role.localeCompare("player")) {
           return true;
         }
@@ -263,7 +266,7 @@ io.on("connection", (socket) => {
           io.to(arg[0]).emit('boardfull');
           closeRoom(arg[0]);
         }
-        
+
       }
     }
 
