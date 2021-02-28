@@ -1,5 +1,5 @@
 //local url is http://localhost:5000
-//prod url is  https://server-ttt.herokuapp.com
+//prod url is  https://objective-jackson-bd6786.netlify.app/
 const server = require('express')();
 const http = require('http').Server(server);
 const io = require('socket.io')(http, {
@@ -131,8 +131,9 @@ function joinGameRoom(room, passedID, passedName) {
 }
 function closeRoom(room) {
   for (r in gameRooms) {
-    if (!gameRooms[r].roomcode.localeCompare(room)) {
-      gameRooms.splice(r);
+    if (gameRooms[r].roomcode.localeCompare(room)) {
+      // console.log(gameRooms[r].roomcode);
+      gameRooms = gameRooms.splice(r);
     }
   }
   io.emit("roomsrefreshed");
@@ -181,7 +182,6 @@ function checkWin(board) {
       bingo = 0;
       for (index in indexes) {
         for (check in winConditions[win]) {
-          console.log(indexes[index], " - ", winConditions[win][check])
           if (indexes[index] == winConditions[win][check]) {
             bingo += 1;
           }
