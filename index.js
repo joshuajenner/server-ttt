@@ -18,7 +18,7 @@ const serviceAccount = require('./tictactoe-g2-8-fc37382609ff.json');
 admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
 const db = admin.firestore();
 
-// const hostname = '127.0.0.1';
+// const hostname = "127.0.0.1"
 const port = process.env.PORT || 3000;
 
 let gameRooms = [];
@@ -131,9 +131,9 @@ function joinGameRoom(room, passedID, passedName) {
 }
 function closeRoom(room) {
   for (r in gameRooms) {
-    if (gameRooms[r].roomcode.localeCompare(room)) {
+    if (!gameRooms[r].roomcode.localeCompare(room)) {
       // console.log(gameRooms[r].roomcode);
-      gameRooms = gameRooms.splice(r);
+      gameRooms.splice(r, 1);
     }
   }
   io.emit("roomsrefreshed");
