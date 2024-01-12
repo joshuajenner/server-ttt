@@ -132,7 +132,6 @@ function joinGameRoom(room, passedID, passedName) {
 function closeRoom(room) {
   for (r in gameRooms) {
     if (!gameRooms[r].roomcode.localeCompare(room)) {
-      // console.log(gameRooms[r].roomcode);
       gameRooms.splice(r, 1);
     }
   }

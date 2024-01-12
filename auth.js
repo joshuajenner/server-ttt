@@ -23,14 +23,11 @@ async function login(givenUser, givenPass) {
 
 async function signup(givenUser, givenPass) {
     const snapshot = await db.collection('users').where('username', '==', givenUser).get();
-    console.log(snapshot);
     if (snapshot.empty) {
         db.collection('users').add({ username: givenUser, password: givenPass });
         return true;
-
     } else {
         return false;
-
     }
 };
 
