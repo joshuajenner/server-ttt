@@ -1,8 +1,8 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('/tictactoe-g2-8-fc37382609ff.json');
+const serviceAccount = require("./google");
 
 
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+admin.initializeApp({ credential: admin.credential.cert(serviceAccount.seviceJson)});
 const db = admin.firestore();
 
 
@@ -13,17 +13,12 @@ async function login(givenUser, givenPass) {
     } else {
         snapshot.forEach(doc => {
             if (doc.data().password == givenPass) {
-                console.log('yuh2')
                 return true;
             } else {
-                console.log('yuhf')
                 return false;
             }
         });
-
-
     }
-
 };
 
 async function signup(givenUser, givenPass) {
