@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('./tictactoe-g2-8-fc37382609ff.json');
+const serviceAccount = require('./google');
 
-admin.initializeApp({  credential: admin.credential.cert(serviceAccount)});
+admin.initializeApp({  credential: admin.credential.cert(serviceAccount.seviceJson)});
 const db = admin.firestore();
 
 module.exports = {db};
