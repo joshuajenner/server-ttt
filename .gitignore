@@ -3,6 +3,7 @@
 /build
 *.lock
 *.log
+.env
 
 # Editor directories and files
 .idea
