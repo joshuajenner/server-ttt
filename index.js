@@ -1,5 +1,8 @@
 //local url is http://localhost:5000
 //prod url is  https://objective-jackson-bd6786.netlify.app/
+
+require('dotenv').config()
+
 const server = require('express')();
 const http = require('http').Server(server);
 const io = require('socket.io')(http, {
@@ -13,9 +16,9 @@ var bodyParser = require('body-parser')
 
 
 const admin = require('firebase-admin');
-const serviceAccount = require('./google');
+const serviceFile = require('./google');
 
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount.seviceJson) });
+admin.initializeApp({ credential: admin.credential.cert(serviceFile.serviceAccount)});
 const db = admin.firestore();
 
 // const hostname = "127.0.0.1"

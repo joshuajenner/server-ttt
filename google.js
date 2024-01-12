@@ -1,4 +1,4 @@
-const serviceJson = {
+const serviceAccount = {
     type: "service_account",
     project_id: "tictactoe-g2-8",
     private_key_id: process.env.PRIVATE_KEY_ID,
@@ -9,4 +9,6 @@ const serviceJson = {
     token_uri: "https://oauth2.googleapis.com/token",
     auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
     client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/tictactoe-g2-8%40appspot.gserviceaccount.com"
-  }
+};
+
+module.exports = { serviceAccount };
